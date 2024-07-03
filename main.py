@@ -55,7 +55,7 @@ def plotar_grafo(matriz, titulo):
     nx.draw(G, pos, with_labels=True, labels={n: n + 1 for n in G.nodes()}, node_color='lightblue',
             edge_color='gray', node_size=500, font_size=12)
     nx.draw_networkx_edge_labels(G, pos, edge_labels=edge_labels)
-    plt.title(titulo)
+    plt.title("Grafo gerado a partir da matriz de adjacência")
     plt.show()
 
 def plotar_mst(mst):
@@ -71,7 +71,6 @@ def plotar_mst(mst):
     nx.draw_networkx_edge_labels(G, pos, edge_labels=edge_labels)
 
     plt.title("Árvore Geradora Mínima (MST) - Algoritmo de Prim")
-    plt.savefig("mst.png")
     plt.show()
 
 def main():
