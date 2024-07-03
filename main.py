@@ -19,65 +19,60 @@ def ler_matrizes_de_arquivo(nome_arquivo):
             matrizes.append(np.array(matriz_atual, dtype=int))
     return matrizes
 
+def prim(matriz, vertice_inicial):
+    n = len(matriz)
+    if n == 0:
+        return []
 
-class Grafo:
-    def __init__(self, matriz):
-        self.matriz = matriz
-        self.lista_adjacencia = self.obter_lista_adjacencia()
+    mst = []
+    visitados = set()
+    arestas = []
 
-    def obter_lista_adjacencia(self):
-        lista_adjacencia = []
-        for indice_vertice, linha in enumerate(self.matriz):
-            adjacentes = []
-            for indice, valor in enumerate(linha):
-                if valor != 0:
-                    adjacentes.append((indice + 1, valor))
-            lista_adjacencia.append((indice_vertice + 1, adjacentes))
-        return lista_adjacencia
+    def adicionar_arestas(vertice):
+        visitados.add(vertice)
+        for i in range(n):
+            peso = matriz[vertice][i]
+            if peso != 0 and i not in visitados:
+                heapq.heappush(arestas, (peso, vertice, i))
 
-    def prim(self, vertice_inicial):
-        if not self.lista_adjacencia:
-            return []
+    adicionar_arestas(vertice_inicial)
 
-        mst = []
-        visitados = set()
-        arestas = []
+    while arestas and len(visitados) < n:
+        peso, vertice, adjacente = heapq.heappop(arestas)
+        if adjacente not in visitados:
+            mst.append((vertice + 1, adjacente + 1, peso))  # Ajustar índices para começar de 1
+            adicionar_arestas(adjacente)
 
-        def adicionar_arestas(vertice):
-            visitados.add(vertice)
-            for adjacente, peso in self.lista_adjacencia[vertice - 1][1]:
-                if adjacente not in visitados:
-                    heapq.heappush(arestas, (peso, vertice, adjacente))
+    return mst
 
-        adicionar_arestas(vertice_inicial)
 
-        while arestas and len(visitados) < len(self.lista_adjacencia):
-            peso, vertice, adjacente = heapq.heappop(arestas)
-            if adjacente not in visitados:
-                mst.append((vertice, adjacente, peso))
-                adicionar_arestas(adjacente)
+def plotar_grafo(matriz, titulo):
+    G = nx.from_numpy_array(matriz)
+    pos = nx.spring_layout(G)
+    edge_labels = {(i, j): matriz[i][j] for i in range(matriz.shape[0]) for j in range(matriz.shape[1]) if
+                   matriz[i][j] != 0}
 
-        return mst
+    nx.draw(G, pos, with_labels=True, labels={n: n + 1 for n in G.nodes()}, node_color='lightblue',
+            edge_color='gray', node_size=500, font_size=12)
+    nx.draw_networkx_edge_labels(G, pos, edge_labels=edge_labels)
+    plt.title(titulo)
+    plt.show()
 
-    def plotar_mst(self, mst):
-        G = nx.Graph()
-        for vertice, adjacentes in self.lista_adjacencia:
-            G.add_node(vertice)
-        for aresta in mst:
-            G.add_edge(aresta[0], aresta[1], weight=aresta[2])
+def plotar_mst(mst):
+    G = nx.Graph()
+    for aresta in mst:
+        G.add_edge(aresta[0], aresta[1], weight=aresta[2])
 
-        pos = nx.spring_layout(G)
-        plt.figure(figsize=(8, 6))
+    pos = nx.spring_layout(G)
+    plt.figure(figsize=(8, 6))
 
-        nx.draw(G, pos, with_labels=True, node_color='skyblue', node_size=700, edge_color='gray', linewidths=1,
-                font_size=15)
-        edge_labels = {(aresta[0], aresta[1]): aresta[2] for aresta in mst}
-        nx.draw_networkx_edge_labels(G, pos, edge_labels=edge_labels)
+    nx.draw(G, pos, with_labels=True, node_color='skyblue', node_size=700, edge_color='gray', linewidths=1, font_size=15)
+    edge_labels = {(aresta[0], aresta[1]): aresta[2] for aresta in mst}
+    nx.draw_networkx_edge_labels(G, pos, edge_labels=edge_labels)
 
-        plt.title("Árvore Geradora Mínima (MST) - Algoritmo de Prim")
-        plt.savefig("mst.png")
-        plt.show()
-
+    plt.title("Árvore Geradora Mínima (MST) - Algoritmo de Prim")
+    plt.savefig("mst.png")
+    plt.show()
 
 def main():
     nome_arquivo = "grafo.txt"
@@ -90,7 +85,7 @@ def main():
     escolha_matriz = int(input("Escolha a matriz: ")) - 1
     matriz_adjacencia = matrizes[escolha_matriz]
 
-    grafo = Grafo(matriz_adjacencia)
+    plotar_grafo(matriz_adjacencia, "Grafo Original")
 
     vertices = list(range(1, len(matriz_adjacencia) + 1))
     print(f"Vértices disponíveis: {vertices}")
@@ -100,13 +95,12 @@ def main():
         print("Vértice inválido. Usando o vértice 1 como padrão.")
         vertice_inicial = 1
 
-    mst = grafo.prim(vertice_inicial)
+    mst = prim(matriz_adjacencia, vertice_inicial - 1)  # Ajustar índice para começar de 0
     print("Árvore Geradora Mínima (MST) pelo algoritmo de Prim:")
     for aresta in mst:
         print(f"{aresta[0]} - {aresta[1]} (Peso: {aresta[2]})")
 
-    grafo.plotar_mst(mst)
-
+    plotar_mst(mst)
 
 if __name__ == "__main__":
     main()
